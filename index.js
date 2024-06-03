@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
@@ -30,17 +30,34 @@ async function run() {
         const allPropertiesCollection = client.db("realEstateDB").collection("allProperties")
         const reviewsCollection = client.db("realEstateDB").collection("reviews")
 
+
+        //all advertisement form db
         app.get('/advertisement', async(req,res)=> {
             const result = await advertisementCollection.find().toArray();
             res.send(result)
         })
 
+        app.get('/advertisement/:id', async(req,res)=> {
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await advertisementCollection.findOne(query)
+            res.send(result)
+        })
+
+        //all properties form db
         app.get('/allProperties', async(req,res)=> {
             const result = await allPropertiesCollection.find().toArray();
             res.send(result)
         })
 
-        
+        app.get('/allProperties/:id', async(req,res)=> {
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await allPropertiesCollection.findOne(query)
+            res.send(result)
+        })
+
+        //all reviews form db
         app.get('/reviews', async(req,res)=> {
             const result = await reviewsCollection.find().toArray();
             res.send(result)
