@@ -32,33 +32,41 @@ async function run() {
 
 
         //all advertisement form db
-        app.get('/advertisement', async(req,res)=> {
+        app.get('/advertisement', async (req, res) => {
             const result = await advertisementCollection.find().toArray();
             res.send(result)
         })
 
-        app.get('/advertisement/:id', async(req,res)=> {
+        app.get('/advertisement/:id', async (req, res) => {
             const id = req.params.id
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await advertisementCollection.findOne(query)
             res.send(result)
         })
 
         //all properties form db
-        app.get('/allProperties', async(req,res)=> {
+        app.get('/allProperties', async (req, res) => {
             const result = await allPropertiesCollection.find().toArray();
             res.send(result)
         })
 
-        app.get('/allProperties/:id', async(req,res)=> {
+        app.get('/allProperties/:id', async (req, res) => {
             const id = req.params.id
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await allPropertiesCollection.findOne(query)
             res.send(result)
         })
 
+        //save a property data
+        app.post('/property', async (req, res) => {
+            const propertyData = req.body
+            const result = await allPropertiesCollection.insertOne(propertyData)
+            res.send(result)
+        })
+
+
         //all reviews form db
-        app.get('/reviews', async(req,res)=> {
+        app.get('/reviews', async (req, res) => {
             const result = await reviewsCollection.find().toArray();
             res.send(result)
         })
