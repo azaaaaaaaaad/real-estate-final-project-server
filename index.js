@@ -1,12 +1,17 @@
 const express = require('express')
-const cors = require('cors')
+const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
-app.use(cors())
+const corsOptions = {
+    origin: ['http://localhost:5000', "http://localhost:5173"],
+    credentials: true,            
+    optionSuccessStatus: 200
+}
+app.use(cors(corsOptions));
 app.use(express.json())
 
 
@@ -64,6 +69,13 @@ async function run() {
             res.send(result)
         })
 
+        //get all property for agent
+        app.get('/my-added-properties/:email', async (req, res) => {
+            const email = req.params.email
+            let query = {'agent.email': email}
+            const result = await allPropertiesCollection.find(query).toArray();
+            res.send(result)
+        })
 
         //all reviews form db
         app.get('/reviews', async (req, res) => {
