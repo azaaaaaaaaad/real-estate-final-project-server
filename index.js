@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 //middleware
 const corsOptions = {
     origin: ['http://localhost:5000', "http://localhost:5173"],
-    credentials: true,            
+    credentials: true,
     optionSuccessStatus: 200
 }
 app.use(cors(corsOptions));
@@ -34,7 +34,15 @@ async function run() {
         const advertisementCollection = client.db("realEstateDB").collection("advertisement")
         const allPropertiesCollection = client.db("realEstateDB").collection("allProperties")
         const reviewsCollection = client.db("realEstateDB").collection("reviews")
+        const usersCollection = client.db("realEstateDB").collection("users")
 
+
+        //save all user in db
+        app.post('/user', async(req,res)=> {
+            const user = req.body
+            const result = await usersCollection.insertOne(user)
+            res.send(result)
+        })
 
         //all advertisement form db
         app.get('/advertisement', async (req, res) => {
@@ -72,8 +80,16 @@ async function run() {
         //get all property for agent
         app.get('/my-added-properties/:email', async (req, res) => {
             const email = req.params.email
-            let query = {'agent.email': email}
+            let query = { 'agent.email': email }
             const result = await allPropertiesCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        //delete a property
+        app.delete('/my-added-properties/:id', async (req, res) => {
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await allPropertiesCollection.deleteOne(query)
             res.send(result)
         })
 
