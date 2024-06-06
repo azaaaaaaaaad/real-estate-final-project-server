@@ -89,8 +89,24 @@ async function run() {
         //save a user in db
         app.put('/user', async (req, res) => {
             const user = req.body
-            const options = { upsert: true }
             const query = { email: user?.email }
+            //check if user already exist in db
+            const isExist = await usersCollection.findOne(query)
+            if (isExist) {
+                //if existing user try to change his role
+                if (user.status === 'Requested') {
+                    const result = await usersCollection.updateOne(query, {
+                        $set: { status: user?.status },
+                    })
+                    return res.send(result)
+                } else {
+                    //if existing user login again
+                    return res.send(isExist)
+                }
+            }
+
+            //save user for the first time
+            const options = { upsert: true }
             const updateDoc = {
                 $set: {
                     ...user,
@@ -100,6 +116,20 @@ async function run() {
             const result = await usersCollection.updateOne(query, updateDoc, options)
             res.send(result)
         })
+
+        //get a user info by email from db
+        app.get('/users/:email', async(req,res)=> {
+            const email = req.params.email
+            const result = await usersCollection.findOne({email})
+            res.send(result)
+        })
+
+        // get all users data from db
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().toArray()
+            res.send(result)
+        })
+
 
         //all advertisement form db
         app.get('/advertisement', async (req, res) => {
