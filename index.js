@@ -1,6 +1,6 @@
+const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb');
 const express = require('express')
 const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const cookieParser = require('cookie-parser')
@@ -17,6 +17,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json())
 
+// Verify Token Middleware
 const verifyToken = async (req, res, next) => {
     const token = req.cookies?.token
     console.log(token)
@@ -56,6 +57,32 @@ async function run() {
         const reviewsCollection = client.db("realEstateDB").collection("reviews")
         const usersCollection = client.db("realEstateDB").collection("users")
 
+        // verify admin middleware
+        const verifyAdmin = async (req, res, next) => {
+            console.log('hello')
+            const user = req.user
+            const query = { email: user?.email }
+            const result = await usersCollection.findOne(query)
+            console.log(result?.role)
+            if (!result || result?.role !== 'admin')
+                return res.status(401).send({ message: 'unauthorized access!!' })
+
+            next()
+        }
+
+        // verify agent middleware
+        const verifyAgent = async (req, res, next) => {
+            console.log('hello')
+            const user = req.user
+            const query = { email: user?.email }
+            const result = await usersCollection.findOne(query)
+            console.log(result?.role)
+            if (!result || result?.role !== 'agent')
+                return res.status(401).send({ message: 'unauthorized access!!' })
+
+            next()
+        }
+
         // auth related api
         app.post('/jwt', async (req, res) => {
             const user = req.body
@@ -80,7 +107,7 @@ async function run() {
                         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
                     })
                     .send({ success: true })
-                console.log('Logout successful')
+                // console.log('Logout successful')
             } catch (err) {
                 res.status(500).send(err)
             }
@@ -89,6 +116,7 @@ async function run() {
         //save a user in db
         app.put('/user', async (req, res) => {
             const user = req.body
+            console.log(req.body);
             const query = { email: user?.email }
             //check if user already exist in db
             const isExist = await usersCollection.findOne(query)
@@ -114,13 +142,14 @@ async function run() {
                 },
             }
             const result = await usersCollection.updateOne(query, updateDoc, options)
+            console.log(result);
             res.send(result)
         })
 
         //get a user info by email from db
-        app.get('/users/:email', async(req,res)=> {
+        app.get('/user/:email', async (req, res) => {
             const email = req.params.email
-            const result = await usersCollection.findOne({email})
+            const result = await usersCollection.findOne({ email })
             res.send(result)
         })
 
@@ -130,6 +159,28 @@ async function run() {
             res.send(result)
         })
 
+        //update a user role
+        app.patch('/users/update/:email', async (req, res) => {
+            const email = req.params.email
+            const user = req.body
+            const query = { email }
+            const updateDoc = {
+                $set: {
+                    ...user,
+                    timestamp: Date.now()
+                }
+            }
+            const result = await usersCollection.updateOne(query, updateDoc)
+            res.send(result)
+        })
+
+        //delete a user
+        app.delete('/users/:id', async (req,res)=> {
+            const id =req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await usersCollection.deleteOne(query)
+            res.send(result)
+        })
 
         //all advertisement form db
         app.get('/advertisement', async (req, res) => {
