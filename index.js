@@ -56,6 +56,7 @@ async function run() {
         const allPropertiesCollection = client.db("realEstateDB").collection("allProperties")
         const reviewsCollection = client.db("realEstateDB").collection("reviews")
         const usersCollection = client.db("realEstateDB").collection("users")
+        const wishlistCollection = client.db("realEstateDB").collection("wishlist")
 
         // verify admin middleware
         const verifyAdmin = async (req, res, next) => {
@@ -113,6 +114,13 @@ async function run() {
             }
         })
 
+        //wishlist collection
+        app.post('/wishlist', async (req,res)=> {
+            const wishlist = req.body
+            const result = await wishlistCollection.insertOne(wishlist)
+            res.send(result)
+        })
+
         //save a user in db
         app.put('/user', async (req, res) => {
             const user = req.body
@@ -154,7 +162,7 @@ async function run() {
         })
 
         // get all users data from db
-        app.get('/users', async (req, res) => {
+        app.get('/users',async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
