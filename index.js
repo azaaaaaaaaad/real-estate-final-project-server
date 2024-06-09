@@ -115,9 +115,23 @@ async function run() {
         })
 
         //wishlist collection
-        app.post('/wishlist', async (req,res)=> {
+        app.post('/wishlist', async (req, res) => {
             const wishlist = req.body
             const result = await wishlistCollection.insertOne(wishlist)
+            res.send(result)
+        })
+
+        app.get('/wishlist', async (req, res) => {
+            const email = req.query.email
+            const query = { email: email }
+            const result = await wishlistCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.delete('/wishlist/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await wishlistCollection.deleteOne(query)
             res.send(result)
         })
 
@@ -162,7 +176,7 @@ async function run() {
         })
 
         // get all users data from db
-        app.get('/users',async (req, res) => {
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
@@ -183,9 +197,9 @@ async function run() {
         })
 
         //delete a user
-        app.delete('/users/:id', async (req,res)=> {
-            const id =req.params.id
-            const query = {_id: new ObjectId(id)}
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
             const result = await usersCollection.deleteOne(query)
             res.send(result)
         })
