@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 
 //middleware
 const corsOptions = {
-    origin: ['http://localhost:5000', "http://localhost:5173"],
+    origin: ['http://localhost:5000', "http://localhost:5173", "https://real-state-server-nine.vercel.app", "https://final-project-12-aead8.web.app"],
     credentials: true,
     optionSuccessStatus: 200
 }
@@ -125,6 +125,13 @@ async function run() {
             const email = req.query.email
             const query = { email: email }
             const result = await wishlistCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get('/wishlist/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await wishlistCollection.findOne(query)
             res.send(result)
         })
 
@@ -261,7 +268,7 @@ async function run() {
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
