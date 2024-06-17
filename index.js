@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb'
 const express = require('express')
 const cors = require('cors');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const app = express();
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
@@ -57,6 +58,8 @@ async function run() {
         const reviewsCollection = client.db("realEstateDB").collection("reviews")
         const usersCollection = client.db("realEstateDB").collection("users")
         const wishlistCollection = client.db("realEstateDB").collection("wishlist")
+        const offerRequestColelction = client.db("realEstateDB").collection("offerRequest")
+
 
         // verify admin middleware
         const verifyAdmin = async (req, res, next) => {
@@ -123,8 +126,9 @@ async function run() {
 
         app.get('/wishlist', async (req, res) => {
             const email = req.query.email
-            const query = { email: email }
+            const query = { email }
             const result = await wishlistCollection.find(query).toArray()
+            // const result = await wishlistCollection.find(query).toArray()
             res.send(result)
         })
 
@@ -139,6 +143,64 @@ async function run() {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await wishlistCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        // Save a offer request from db for property owner
+        // app.post('/offerRequest', async (req, res) => {
+        //     const offerRequest = req.body
+
+            // check if its a duplicate request
+            // const query = {
+                // email: offerRequest.email,
+                // jobId: offerRequest.jobId,
+            // }
+            // const alreadyApplied = await offerRequestColelction.findOne(query)
+            // console.log(alreadyApplied)
+            // if (alreadyApplied) {
+                // return res
+                    // .status(400)
+                    // .send('You have already offerd a request for this property.')
+            // }
+
+            // const result = await offerRequestColelction.insertOne(offerRequest)
+
+            // update offer Request count in jobs collection
+            // const updateDoc = {
+                // $inc: { bid_count: 1 },
+            // }
+            // const jobQuery = { _id: new ObjectId(offerRequest.jobId) }
+            // const updateBidCount = await jobsCollection.updateOne(jobQuery, updateDoc)
+            // console.log(updateBidCount)
+            // res.send(result)
+        // })
+
+
+        app.post('/offerRequest', async (req,res)=> {
+            const offerRequest = req.body
+            const result = await offerRequestColelction.insertOne(offerRequest)
+            res.send(result)
+        })
+
+
+
+        //get all offer request from db for property owner
+        app.get('/offerRequest', async (req,res)=> {
+            const result = await offerRequestColelction.find().toArray()
+            res.send(result)
+        })
+
+        // update offer request of property in db
+        app.patch('/offerRequest/:id', async(req,res)=> {
+            const id = req.params.id
+            const status = req.body
+            const query = {_id: new ObjectId(id)}
+            const updateDoc = {
+                $set: {
+                    ...status
+                }
+            }
+            const result = await offerRequestColelction.updateOne(query, updateDoc)
             res.send(result)
         })
 
@@ -264,6 +326,23 @@ async function run() {
         app.get('/reviews', async (req, res) => {
             const result = await reviewsCollection.find().toArray();
             res.send(result)
+        })
+
+
+        //payment intent
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body
+            const amount = parseInt(price * 100)
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                paymnet_method_types: ['card']
+            })
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
         })
 
         // Send a ping to confirm a successful connection
