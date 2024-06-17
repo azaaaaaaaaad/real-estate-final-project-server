@@ -204,6 +204,13 @@ async function run() {
             res.send(result)
         })
 
+        // show all sold properties from db
+        app.get('/soldProperties', async(req,res)=>{
+            const query = {status: 'accepted'}
+            const result = await offerRequestColelction.find(query). toArray()
+            res.send(result)
+        })
+
         //save a user in db
         app.put('/user', async (req, res) => {
             const user = req.body
