@@ -313,6 +313,20 @@ async function run() {
             res.send(result)
         })
 
+        // update  property status in db
+        app.patch('/property/:id', async(req,res)=> {
+            const id = req.params.id
+            const verification_status = req.body
+            const query = {_id: new ObjectId(id)}
+            const updateDoc = {
+                $set: {
+                    ...verification_status
+                }
+            }
+            const result = await allPropertiesCollection.updateOne(query, updateDoc)
+            res.send(result)
+        })
+
         //get all property for agent
         app.get('/my-added-properties/:email', async (req, res) => {
             const email = req.params.email
