@@ -146,36 +146,6 @@ async function run() {
             res.send(result)
         })
 
-        // Save a offer request from db for property owner
-        // app.post('/offerRequest', async (req, res) => {
-        //     const offerRequest = req.body
-
-        // check if its a duplicate request
-        // const query = {
-        // email: offerRequest.email,
-        // jobId: offerRequest.jobId,
-        // }
-        // const alreadyApplied = await offerRequestColelction.findOne(query)
-        // console.log(alreadyApplied)
-        // if (alreadyApplied) {
-        // return res
-        // .status(400)
-        // .send('You have already offerd a request for this property.')
-        // }
-
-        // const result = await offerRequestColelction.insertOne(offerRequest)
-
-        // update offer Request count in jobs collection
-        // const updateDoc = {
-        // $inc: { bid_count: 1 },
-        // }
-        // const jobQuery = { _id: new ObjectId(offerRequest.jobId) }
-        // const updateBidCount = await jobsCollection.updateOne(jobQuery, updateDoc)
-        // console.log(updateBidCount)
-        // res.send(result)
-        // })
-
-
         app.post('/offerRequest', async (req, res) => {
             const offerRequest = req.body
             const result = await offerRequestColelction.insertOne(offerRequest)
@@ -303,6 +273,21 @@ async function run() {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await allPropertiesCollection.findOne(query)
+            res.send(result)
+        })
+
+        app.put('/allProperties/:id', async (req, res) => {
+            const property = req.body
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    ...property
+                },
+            }
+            const result = await allPropertiesCollection.updateOne(query, updateDoc, options)
+            console.log(result);
             res.send(result)
         })
 
