@@ -150,33 +150,33 @@ async function run() {
         // app.post('/offerRequest', async (req, res) => {
         //     const offerRequest = req.body
 
-            // check if its a duplicate request
-            // const query = {
-                // email: offerRequest.email,
-                // jobId: offerRequest.jobId,
-            // }
-            // const alreadyApplied = await offerRequestColelction.findOne(query)
-            // console.log(alreadyApplied)
-            // if (alreadyApplied) {
-                // return res
-                    // .status(400)
-                    // .send('You have already offerd a request for this property.')
-            // }
+        // check if its a duplicate request
+        // const query = {
+        // email: offerRequest.email,
+        // jobId: offerRequest.jobId,
+        // }
+        // const alreadyApplied = await offerRequestColelction.findOne(query)
+        // console.log(alreadyApplied)
+        // if (alreadyApplied) {
+        // return res
+        // .status(400)
+        // .send('You have already offerd a request for this property.')
+        // }
 
-            // const result = await offerRequestColelction.insertOne(offerRequest)
+        // const result = await offerRequestColelction.insertOne(offerRequest)
 
-            // update offer Request count in jobs collection
-            // const updateDoc = {
-                // $inc: { bid_count: 1 },
-            // }
-            // const jobQuery = { _id: new ObjectId(offerRequest.jobId) }
-            // const updateBidCount = await jobsCollection.updateOne(jobQuery, updateDoc)
-            // console.log(updateBidCount)
-            // res.send(result)
+        // update offer Request count in jobs collection
+        // const updateDoc = {
+        // $inc: { bid_count: 1 },
+        // }
+        // const jobQuery = { _id: new ObjectId(offerRequest.jobId) }
+        // const updateBidCount = await jobsCollection.updateOne(jobQuery, updateDoc)
+        // console.log(updateBidCount)
+        // res.send(result)
         // })
 
 
-        app.post('/offerRequest', async (req,res)=> {
+        app.post('/offerRequest', async (req, res) => {
             const offerRequest = req.body
             const result = await offerRequestColelction.insertOne(offerRequest)
             res.send(result)
@@ -185,16 +185,16 @@ async function run() {
 
 
         //get all offer request from db for property owner
-        app.get('/offerRequest', async (req,res)=> {
+        app.get('/offerRequest', async (req, res) => {
             const result = await offerRequestColelction.find().toArray()
             res.send(result)
         })
 
         // update offer request of property in db
-        app.patch('/offerRequest/:id', async(req,res)=> {
+        app.patch('/offerRequest/:id', async (req, res) => {
             const id = req.params.id
             const status = req.body
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
                     ...status
@@ -205,9 +205,9 @@ async function run() {
         })
 
         // show all sold properties from db
-        app.get('/soldProperties', async(req,res)=>{
-            const query = {status: 'accepted'}
-            const result = await offerRequestColelction.find(query). toArray()
+        app.get('/soldProperties', async (req, res) => {
+            const query = { status: 'accepted' }
+            const result = await offerRequestColelction.find(query).toArray()
             res.send(result)
         })
 
@@ -314,10 +314,10 @@ async function run() {
         })
 
         // update  property status in db
-        app.patch('/property/:id', async(req,res)=> {
+        app.patch('/property/:id', async (req, res) => {
             const id = req.params.id
             const verification_status = req.body
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
                     ...verification_status
@@ -348,6 +348,22 @@ async function run() {
             const result = await reviewsCollection.find().toArray();
             res.send(result)
         })
+
+        //post review
+        app.post('/reviews', async (req, res) => {
+            const reviewData = req.body
+            const result = await reviewsCollection.insertOne(reviewData)
+            res.send(result)
+        })
+
+        app.delete('/reviews/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await reviewsCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        
 
 
         //payment intent
