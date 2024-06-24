@@ -59,6 +59,7 @@ async function run() {
         const usersCollection = client.db("realEstateDB").collection("users")
         const wishlistCollection = client.db("realEstateDB").collection("wishlist")
         const offerRequestColelction = client.db("realEstateDB").collection("offerRequest")
+        const paymentColelction = client.db("realEstateDB").collection("payments")
 
 
         // verify admin middleware
@@ -174,6 +175,13 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/offerRequest/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await offerRequestColelction.findOne(query)
+            res.send(result)
+        })
+
         // show all sold properties from db
         app.get('/soldProperties', async (req, res) => {
             const query = { status: 'accepted' }
@@ -263,11 +271,31 @@ async function run() {
             res.send(result)
         })
 
-        //all properties form db
+
         app.get('/allProperties', async (req, res) => {
-            const result = await allPropertiesCollection.find().toArray();
-            res.send(result)
-        })
+            const filter = req.query;
+            console.log(filter);
+        
+            // Ensure filter.search is a string, or provide a default if necessary
+            const query = {};
+            if (filter.search && typeof filter.search === 'string') {
+                query.title = { $regex: filter.search, $options: 'i' };
+            }
+        
+            const options = {
+                sort: {
+                    priceMin: filter.sort === 'asc' ? 1 : -1
+                }
+            };
+        
+            try {
+                const result = await allPropertiesCollection.find(query, options).toArray();
+                res.send(result);
+            } catch (err) {
+                console.error('Error fetching properties:', err);
+                res.status(500).send({ error: 'Internal server error' });
+            }
+        });
 
         app.get('/allProperties/:id', async (req, res) => {
             const id = req.params.id
@@ -334,6 +362,14 @@ async function run() {
             res.send(result)
         })
 
+        //get a review from email
+        app.get('/reviews/:email', async (req, res) => {
+            const email = req.params.email
+            let query = { email }
+            const result = await reviewsCollection.find(query).toArray();
+            res.send(result)
+        })
+
         //post review
         app.post('/reviews', async (req, res) => {
             const reviewData = req.body
@@ -353,19 +389,28 @@ async function run() {
 
         //payment intent
         app.post('/create-payment-intent', async (req, res) => {
-            const { price } = req.body
-            const amount = parseInt(price * 100)
-
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            console.log(amount, 'amount inside the intent')
             const paymentIntent = await stripe.paymentIntents.create({
-                amount: amount,
-                currency: 'usd',
-                paymnet_method_types: ['card']
-            })
-
+              amount: amount,
+              currency: 'usd',
+              payment_method_types: ['card']
+            });
+      
             res.send({
-                clientSecret: paymentIntent.client_secret
+              clientSecret: paymentIntent.client_secret
             })
-        })
+          });
+
+          app.post('/payments', async(req,res)=> {
+            const payment = req.body
+            const paymentResult = await paymentColelction.insertOne(payment)
+
+            //delete
+            console.log('payement info', payment);
+            res.send(paymentResult)
+          })
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
